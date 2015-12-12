@@ -5,6 +5,7 @@ import time
 import pigpio
 import os
 import datetime
+import time
 import json
 import schedule
 import threading
@@ -14,6 +15,26 @@ SSR_PIN = 23
 TESTING = True
 
 
+# Starting Scheduling Daemon
+print("-- START DAEMON --")
+SCHEDULER_RUN = True
+def scheduler_daemon():
+    while SCHEDULER_RUN:
+        schedule.run_pending()
+        time.sleep(1)
+
+daemon_thread = threading.Thread(target=scheduler_daemon, name='scheduler_thread')
+daemon_thread.daemon = True
+daemon_thread.start()
+
+
+def time_difference(t1):
+    FMT = '%H:%M'
+    t2 = datetime.datetime.strftime(datetime.datetime.now(), FMT)
+    s1 = datetime.datetime.strptime(t2, FMT)
+    s2 = datetime.datetime.strptime(t1, FMT)
+    tdelta = s2 - s1
+    return time.strftime("%H:%M", time.gmtime(tdelta.seconds))
 
 def sched_test():
     print("--- TEST ---")
@@ -25,12 +46,10 @@ class WeckerWeb(object):
         self.wecker_startzeit = None
         self.wecken_p = False
         
-        self.dimm_dauer = 8 #sekunden
+        self.dimm_dauer = 120 #sekunden
         self.nachleuchten = 1 #sekunden
 
         self.config_file = os.path.abspath(os.getcwd()) + "/config.json"
-        self.daemon_thread = None
-        self.daemon_run = True
         
         # PWM Configuration
         self.pwm_start = 1000
@@ -43,7 +62,6 @@ class WeckerWeb(object):
         self.pi.set_PWM_frequency(LED_PIN, 1200)
 
         self.load_config()
-        self.start_daemon()
 
         if(self.weckzeit):
             self.init_scheduler()
@@ -54,64 +72,32 @@ class WeckerWeb(object):
             print("Wecker ist aus")
             return "Wecker ist aus"
         
-        if(TESTING):
-            dimm_dauer = 8 #sekunden
-            nachleuchten = 1 #sekunden
-            pwm_start = 1000
-            pwm_ende  = 2550
-        else:
-            pwm_start = 1200
-            pwm_ende  = 2550
-            dimm_dauer = 1800 #sekunden
-            nachleuchten = 1800 #sekunden
-
         try:
             self.pi.write(SSR_PIN,1)
             print("start dimming")
             time.sleep(0.2)
-            for i in range(pwm_start,pwm_ende):
+            for i in range(self.pwm_start,self.pwm_ende):
                 self.pi.set_PWM_dutycycle(LED_PIN,i/10)
-                time.sleep(dimm_dauer / (pwm_ende - pwm_start))
+                time.sleep(self.dimm_dauer / (self.pwm_ende - self.pwm_start))
 
-            time.sleep(nachleuchten)
+            time.sleep(self.nachleuchten)
         finally:
             self.pi.write(SSR_PIN,0)
-            time.sleep(0.5)
             self.pi.set_PWM_dutycycle(LED_PIN,0)
-            self.pi.stop()
             print( "fertig")
 
     def init_scheduler(self):
         print("init_scheduler")
-        # self.stop_daemon()
-        # if(self.daemon_thread):
-        #     self.daemon_thread.join()
         schedule.clear()
-        schedule.every().day.at(self.weckzeit).do(self.start_dimming)
-        #self.start_daemon()
-
-    def start_daemon(self):
-        print("-- START DAEMON --")
-        self.daemon_run = True
-        self.daemon_thread = threading.Thread(target=self.scheduler_daemon, name='scheduler_thread')
-        self.daemon_thread.daemon = True
-        self.daemon_thread.start()
-
-    def stop_daemon(self):
-        self.daemon_run = False
-        
-    def scheduler_daemon(self):
-        while self.daemon_run:
-            schedule.run_pending()
-            time.sleep(1)
-        print("-- DAEMON ENDE --")
-        
+        schedule.every().day.at(self.wecker_startzeit).do(self.start_dimming)
         
     def save_config(self):
         # Daten in JSON-File raussschreiben
         config = {'weckzeit' : self.weckzeit,
                   'wecker_startzeit' : self.wecker_startzeit,
-                  'wecken_p' : self.wecken_p}
+                  'wecken_p' : self.wecken_p,
+                  'dimm_dauer' : self.dimm_dauer,
+                  'nachleuchten' : self.nachleuchten}
 
         with open(self.config_file, 'w') as fp:
             json.dump(config, fp)
@@ -123,8 +109,53 @@ class WeckerWeb(object):
             self.weckzeit = config['weckzeit']
             self.wecker_startzeit = config['wecker_startzeit']
             self.wecken_p = config['wecken_p']
+            self.dimm_dauer = config['dimm_dauer']
+            self.nachleuchten = config['nachleuchten']
 
-        
+
+    @cherrypy.expose            
+    def get_dimmdauer(self):
+        return str(int(self.dimm_dauer  / 60))
+
+    def set_startzeit(self):
+        t1 = datetime.datetime.strptime(self.weckzeit,'%H:%M')
+        t2 = datetime.timedelta(seconds=self.dimm_dauer)
+        self.wecker_startzeit = (t1-t2).strftime("%H:%M")
+
+    
+    @cherrypy.expose
+    def set_dimmdauer(self, dimmdauer):
+        output  = ''
+        try:
+            self.dimm_dauer = int( int(dimmdauer) * 60 )
+            output = int(self.dimm_dauer / 60)
+        except:
+            standard_dimmdauer = 10 * 60
+            self.dimm_dauer = int(standard_dimmdauer)
+            output = int(standard_dimmdauer / 60)
+        finally:
+            self.set_startzeit()
+            self.save_config()
+            return str(output) + ";" + self.wecker_startzeit
+
+    @cherrypy.expose
+    def get_nachleuchten(self):
+        return str(int(self.nachleuchten / 60))
+
+    @cherrypy.expose
+    def set_nachleuchten(self, nachleuchten):
+        output = ''
+        try:
+            self.nachleuchten = int( int(nachleuchten) * 60)
+            output = str(int(self.nachleuchten / 60))
+        except:
+            standard_nachleuchten = 10 * 60
+            self.nachleuchten = int(standard_nachleuchten)
+            output = str(int(standard_nachleuchten / 60))
+        finally:
+            self.save_config()
+            return str(output)
+            
         
     @cherrypy.expose
     def get_wecken_p(self):
@@ -169,27 +200,30 @@ class WeckerWeb(object):
     @cherrypy.expose
     def set_time(self,weckzeit):
         try:
-            t1 = datetime.datetime.strptime(weckzeit,'%H:%M')
-            t2 = datetime.timedelta(seconds=self.dimm_dauer, minutes=12)
-            self.wecker_startzeit = (t1-t2).strftime("%H:%M")
+            self.weckzeit = weckzeit
+            self.set_startzeit() # vorher weckzeit setzen
             print("STARTZEIT: " + str(self.wecker_startzeit))
             
-            self.weckzeit = weckzeit
+
             print("WECKZEIT: " + str(self.weckzeit))
             self.save_config()
 
             self.init_scheduler()
             
-            return self.weckzeit
+            return self.weckzeit + ";" + time_difference(self.weckzeit) + ";" + time_difference(self.wecker_startzeit)
         except:
             return "Weckzeit konnte nicht gesetzt werden."
 
     @cherrypy.expose
     def get_time(self):
         if(self.weckzeit):
-            return self.weckzeit
+            return self.weckzeit + ";" + time_difference(self.weckzeit) + ";" + time_difference(self.wecker_startzeit)
         else:
-            return "06:30"
+            return "06:30" + ";" + time_difference(self.weckzeit) + ";" + time_difference(self.wecker_startzeit)
+
+    @cherrypy.expose
+    def get_lichtstart(self):
+        return time_difference(self.wecker_startzeit)
         
     def index(self):
         output = """<!DOCTYPE html>
@@ -223,5 +257,12 @@ if __name__ == '__main__':
     }
     cherrypy.config.update({'server.socket_host' : '0.0.0.0',
                             'server.socket_port' : 10000, })
+
     cherrypy.quickstart(WeckerWeb(), '/', conf)
-    
+
+    # Beenden von Scheduler Thread
+    SCHEDULER_RUN = False    
+    daemon_thread.join()
+
+
+    print("ENDE")
