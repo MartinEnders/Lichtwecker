@@ -14,6 +14,8 @@ LED_PIN = 24
 SSR_PIN = 23
 TESTING = True
 
+SCRIPT_PATH = os.path.realpath(__file__)
+SCRIPT_DIR  = "/".join(SCRIPT_PATH.split("/")[0:-1])
 
 # Starting Scheduling Daemon
 print("-- START DAEMON --")
@@ -49,7 +51,7 @@ class WeckerWeb(object):
         self.dimm_dauer = 120 #sekunden
         self.nachleuchten = 1 #sekunden
 
-        self.config_file = os.path.abspath(os.getcwd()) + "/config.json"
+        self.config_file = SCRIPT_DIR + "/config.json"
         
         # PWM Configuration
         self.pwm_start = 1000
@@ -248,7 +250,7 @@ if __name__ == '__main__':
     conf = {
         '/' : {
             'tools.sessions.on' : True,
-            'tools.staticdir.root' : os.path.abspath(os.getcwd())
+            'tools.staticdir.root' : SCRIPT_DIR
         },
         '/static' : {
             'tools.staticdir.on' : True,

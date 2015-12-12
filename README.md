@@ -12,6 +12,8 @@ Ueber den RaspberryPi wird einen Weboberflaeche zur Verfuegung gestellt ueber di
 
 Zum Dimmen wird ein Leistungssteller via PWM-Signal vom RaspberryPi angesteuert.
 
+GPIO (on/off, pwm):
+* http://abyz.co.uk/rpi/pigpio/pigpiod.html
 
 Aktueller Stand der Dokumentation
 ------------------------------------
@@ -21,4 +23,4 @@ Python Skript (Backend - wecker_web.py) und JavaScript (Frontend static/main.js)
 
 Diese Loesung ist ein erster Entwurf - die Implentierung ist noch sehr verbesserungsfaehig (-:
 
- 
+
