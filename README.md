@@ -24,3 +24,8 @@ Python Skript (Backend - wecker_web.py) und JavaScript (Frontend static/main.js)
 Diese Loesung ist ein erster Entwurf - die Implentierung ist noch sehr verbesserungsfaehig (-:
 
 
+Screenshot
+------------
+Screenshot der Weboberflaeche auf einem iPhone 5:
+
+![Screenshot](pictures/weboberflaeche-iphone.png)
