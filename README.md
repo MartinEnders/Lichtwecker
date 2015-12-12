@@ -15,5 +15,9 @@ Zum Dimmen wird ein Leistungssteller via PWM-Signal vom RaspberryPi angesteuert.
 
 Aktueller Stand der Dokumentation
 ------------------------------------
-2015-12-12: Python Skript (Backend) und JavaScript (Frontend)
+2015-12-12:
+
+Python Skript (Backend - wecker_web.py) und JavaScript (Frontend static/main.js)
+
+Diese Loesung ist ein erster Entwurf - die Implentierung ist noch sehr verbesserungsfaehig (-:
 
