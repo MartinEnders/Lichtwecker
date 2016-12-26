@@ -38,6 +38,11 @@ Bemerkungen
 Der Pythonwebserver ist manchmal nicht zugreifbar, geht aber wieder nachdem man sich via SSH auf dem PI angemeldet hat.
 Viellicht ist das unter folgendem Link eine Loesung: https://wiki.archlinux.org/index.php/Systemd/User#Automatic_start-up_of_systemd_user_instances
 
+Der Zugriff auf den Webserver lag scheinbar daran, dass sich der WLAN-Stick den ich verwende schlafen gelegt hat. Man konnte sich dann auch nicht via ssh verbinden.
+
+Das script unter wlan-helper-script/wlan.sh lasse ich jetzt mit einem cronjob minuetlich laufen - damit funktioniert der Zugriff auf den Pi via WLAN jetzt zuverlaessig.
+
+
 ####Tonwecker
 Zusaetzlicher Ton zum Licht der langsam immer lauter wird:
 
