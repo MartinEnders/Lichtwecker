@@ -1,0 +1,11 @@
+[Unit]
+Description=Lichtwecker
+After=syslog.target network.target pigpiod.service
+
+[Service]
+User=pi
+ExecStart=/home/pi/Lichtwecker/wecker_web.py
+
+
+[Install]
+WantedBy=multi-user.target

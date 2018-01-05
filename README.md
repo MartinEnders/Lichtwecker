@@ -34,7 +34,21 @@ Screenshot der Weboberflaeche auf einem iPhone 5:
 Bemerkungen
 ---------------
 
-####Webserver
+#### pigpiod starten
+
+Bei der Installation von pigpiod ist schon ein initscript dabei. (Quelle: https://gpiozero.readthedocs.io/en/stable/remote_gpio.html)
+
+```bash
+sudo systemctl enable pigpiod
+```
+
+#### Webserver starten
+
+Im Verzeichnis ```init-scripts``` liegen Skripte fuer ```/etc/init.d/``` (Webserver und gpiod) und fuer den Webserver fuer ```sytsemd```.
+
+Fuer ```systemd``` bei pigpiod am besten das mitgelieferte script verwenden.
+
+#### Webserver
 Der Pythonwebserver ist manchmal nicht zugreifbar, geht aber wieder nachdem man sich via SSH auf dem PI angemeldet hat.
 Viellicht ist das unter folgendem Link eine Loesung: https://wiki.archlinux.org/index.php/Systemd/User#Automatic_start-up_of_systemd_user_instances
 
@@ -43,7 +57,7 @@ Der Zugriff auf den Webserver lag scheinbar daran, dass sich der WLAN-Stick den 
 Das script unter wlan-helper-script/wlan.sh lasse ich jetzt mit einem cronjob minuetlich laufen - damit funktioniert der Zugriff auf den Pi via WLAN jetzt zuverlaessig.
 
 
-####Tonwecker
+#### Tonwecker
 Zusaetzlicher Ton zum Licht der langsam immer lauter wird:
 
 omxplayer: http://elinux.org/Omxplayer
