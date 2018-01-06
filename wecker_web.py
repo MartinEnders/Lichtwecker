@@ -9,6 +9,7 @@ import time
 import json
 import schedule
 import threading
+import subprocess
 
 LED_PIN = 24
 SSR_PIN = 23
@@ -67,6 +68,10 @@ class WeckerWeb(object):
 
         if(self.weckzeit):
             self.init_scheduler()
+
+        # Shutdown nur ausfuehren wenn innerhalb eines Zeitintervals
+        # zweimal geklickt wird.
+        self.last_shutdown_request = time.time()
 
     @cherrypy.expose
     def start_dimming(self):
@@ -195,6 +200,18 @@ class WeckerWeb(object):
         try:
             self.pi.set_PWM_dutycycle(LED_PIN,0)
             self.pi.write(SSR_PIN,0)
+            return "ok"
+        except:
+            return "ko"
+
+    @cherrypy.expose
+    def shutdown_pi(self):
+        try:
+            last_click = self.last_shutdown_request
+            if( (time.time() - last_click) < 5 ):
+                subprocess.call(['sudo', 'halt'])
+            else:
+                self.last_shutdown_request = time.time()
             return "ok"
         except:
             return "ko"

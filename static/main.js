@@ -13,6 +13,7 @@ $(document).ready(function(){
 
     var on_button = $("<button>On</button>");
     var off_button = $("<button>Off</button>");
+    var shutdown_button = $("<button>Shutdown</button>");
 
     var time_form = $("<input type='time' value='' />");
     var set_time = $("<span></span>");
@@ -56,6 +57,10 @@ $(document).ready(function(){
 
     off_button.click(function(evt){
 	$.get("/light_off", function(data){console.log(data);});
+    });
+
+    shutdown_button.click(function(evt){
+	$.get("/shutdown_pi", function(data){console.log(data);});
     });
 
 
@@ -132,6 +137,7 @@ $(document).ready(function(){
 	.append(dimm_zeit_label)
 	.append(dimm_zeit)
 	.append(nachleuchten_label)
-	.append(nachleuchten);
+	.append(nachleuchten)
+        .append(shutdown_button);
 
 });

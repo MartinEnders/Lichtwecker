@@ -17,6 +17,12 @@ GPIO (on/off, pwm):
 
 Aktueller Stand der Dokumentation
 ------------------------------------
+2018-01-06:
+
+Erweiterung der Weboberflaeche um einen Shutdown-Button.
+Um den Raspberrypi herunterzufahren gibt es jetzt einen Shutdown-Button am unteren Ende der Weboberflaeche. Der Button muss zweimal innerhalb von fuenf Sekunden betaetigt werden um den Pi heruterzufahren.
+
+
 2015-12-12:
 
 Python Skript (Backend - wecker_web.py) und JavaScript (Frontend static/main.js)
